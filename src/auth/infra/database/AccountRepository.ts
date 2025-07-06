@@ -11,25 +11,45 @@ export default class AccountRepository implements IAccountRepository {
     }
 
     async findByUsername(username: string) {
-        const [accounts] = await this.databaseManager.getConnection().query(
-            `
-        SELECT
-            account.*,
-            account_status.createdAt as accountStatusCreatedAt,
-            account_status.updatedAt as accountStatusUpdatedAt,
-            account_status.id as accountStatusId,
-            account_status.allowLogin,
-            account_status.description,
-            account_status.clientStatus
-        FROM account
-            JOIN account_status ON account.accountStatusId = account_status.id
-        WHERE
-            account.username = ?;
-        `,
-            [username],
-        );
-
-        return this.mapToEntity(accounts[0]);
+        const conn = this.databaseManager.getConnection();
+        let accountRow;
+        if (this.databaseManager.isSqlite) {
+            const rows = conn.query(`
+                SELECT
+                    account.*,
+                    account_status.createdAt as accountStatusCreatedAt,
+                    account_status.updatedAt as accountStatusUpdatedAt,
+                    account_status.id as accountStatusId,
+                    account_status.allowLogin,
+                    account_status.description,
+                    account_status.clientStatus
+                FROM account
+                    JOIN account_status ON account.accountStatusId = account_status.id
+                WHERE
+                    account.username = ?;
+            `).all(username);
+            accountRow = rows[0];
+        } else {
+            const [accounts] = await conn.query(
+                `
+                SELECT
+                    account.*,
+                    account_status.createdAt as accountStatusCreatedAt,
+                    account_status.updatedAt as accountStatusUpdatedAt,
+                    account_status.id as accountStatusId,
+                    account_status.allowLogin,
+                    account_status.description,
+                    account_status.clientStatus
+                FROM account
+                    JOIN account_status ON account.accountStatusId = account_status.id
+                WHERE
+                    account.username = ?;
+                `,
+                [username],
+            );
+            accountRow = accounts[0];
+        }
+        return this.mapToEntity(accountRow);
     }
 
     mapToEntity(account: any) {
