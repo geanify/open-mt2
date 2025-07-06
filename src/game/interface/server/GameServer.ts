@@ -12,11 +12,14 @@ export default class GameServer extends Server {
     }
 
     async onData(connection: GameConnection, data: Buffer) {
+        console.log('[GameServer] onData called', data, 'Header byte:', data[0]);
+        console.info('[GameServer] Received data from client:', data, 'Header byte:', data[0]);
         this.container.containerInstance.createScope();
         this.logger.debug(`[IN][DATA SOCKET EVENT] Data received from ID: ${connection.getId()}`);
 
         const header = data[0];
         const packetExists = this.packets.has(header);
+        console.log('[GameServer] packetExists:', packetExists);
 
         if (!packetExists) {
             this.logger.info(`[IN][PACKET] Unknown header packet: ${data[0]}`);
@@ -25,9 +28,19 @@ export default class GameServer extends Server {
 
         const { createPacket, createHandler } = this.packets.get(header);
         const packet = createPacket({});
+        console.log('[GameServer] Packet created:', packet.constructor.name);
         const handler = createHandler(this.container);
+        console.log('[GameServer] Handler created:', handler.constructor.name);
+        let unpackedPacket;
+        try {
+            unpackedPacket = packet.unpack(data);
+            console.log('[GameServer] Packet unpacked:', unpackedPacket.constructor.name);
+        } catch (err) {
+            console.error('[GameServer] Error unpacking packet:', err);
+            return;
+        }
         this.logger.debug(`[IN][PACKET] processing packet: ${handler.constructor.name}`);
-        handler.execute(connection, packet.unpack(data)).catch((err) => this.logger.error(err));
+        handler.execute(connection, unpackedPacket).catch((err) => this.logger.error(err));
     }
 
     createConnection(socket: Socket) {

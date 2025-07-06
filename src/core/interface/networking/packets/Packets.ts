@@ -35,6 +35,8 @@ import TargetPacket from './packet/in/target/TargetPacket';
 import TargetPacketHandler from './packet/in/target/TargetPacketHandler';
 import Packet from './packet/Packet';
 import PacketHandler from './packet/PacketHandler';
+import ReturnToSelectPacket from './packet/in/returnToSelect/ReturnToSelectPacket';
+import ReturnToSelectPacketHandler from './packet/in/returnToSelect/ReturnToSelectPacketHandler';
 
 export type PacketMapValue<T extends Packet> = {
     createPacket: (params?: any) => T;
@@ -159,6 +161,13 @@ const packets: Map<number, PacketMapValue<any>> = new Map<number, PacketMapValue
         {
             createPacket: (params = {}) => new TargetPacket(params),
             createHandler: (params) => new TargetPacketHandler(params),
+        },
+    ],
+    [
+        PacketHeaderEnum.RETURN_TO_SELECT,
+        {
+            createPacket: () => new ReturnToSelectPacket(),
+            createHandler: (params) => new ReturnToSelectPacketHandler(params),
         },
     ],
 ]);

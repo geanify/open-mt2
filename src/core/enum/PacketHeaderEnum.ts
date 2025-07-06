@@ -44,4 +44,5 @@ export default {
     CHARACTER_DIED: 0x0e,
     FLY: 0x46,
     AFFECT_ADD: 0x7e,
+    RETURN_TO_SELECT: 0xAF,
 };

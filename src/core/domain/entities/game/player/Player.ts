@@ -527,6 +527,11 @@ export default class Player extends Character {
     }
 
     chat({ message, messageType }: { message: string; messageType: ChatMessageTypeEnum }) {
+        if (!this.connection) {
+            console.warn(`[Player.chat] No connection for player ${this.getName()} (id: ${this.getId()})`);
+            return;
+        }
+        console.info(`[Player.chat] Sending chat to player ${this.getName()} (id: ${this.getId()}):`, { message, messageType });
         this.connection.send(
             new ChatOutPacket({
                 messageType,

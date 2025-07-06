@@ -36,7 +36,9 @@ export default class GameConnection extends Connection {
 
     setPlayer(newPlayer: Player) {
         this.player = newPlayer;
-        this.player.setConnection(this);
+        if (this.player) {
+            this.player.setConnection(this);
+        }
     }
 
     getPlayer() {

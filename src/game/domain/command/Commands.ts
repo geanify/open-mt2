@@ -22,6 +22,8 @@ import QuitCommandHandler from './command/quit/QuitCommandHandler';
 import StatCommand from './command/stat/StatCommand';
 import StatCommandHandler from './command/stat/StatCommandHandler';
 import CommandHandler from './CommandHandler';
+import PhaseSelectCommand from './command/phaseSelect/PhaseSelectCommand';
+import PhaseSelectCommandHandler from './command/phaseSelect/PhaseSelectCommandHandler';
 
 export type CommandConstructor<T extends Command> = {
     new (args?: any): T;
@@ -112,6 +114,17 @@ export default () =>
             {
                 command: PrivilegeCommand,
                 createHandler: (params) => new PrivilegeCommandHandler(params),
+            },
+        ],
+        [
+            PhaseSelectCommand.getName(),
+            {
+                command: PhaseSelectCommand,
+                createHandler: (params) => new PhaseSelectCommandHandler({
+                    logger: params.logger,
+                    leaveGameService: params.leaveGameService,
+                    loadCharactersService: params.loadCharactersService,
+                }),
             },
         ],
     ]);

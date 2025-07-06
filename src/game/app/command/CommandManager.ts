@@ -14,7 +14,8 @@ export default class CommandManager {
         this.container = container;
     }
 
-    async execute({ message, player }) {
+    async execute({ message, player, extraArgs }: { message: string, player: any, extraArgs?: any }) {
+        console.log('[CommandManager] execute called', { message, playerName: player?.getName?.(), extraArgs });
         //TODO: validate player flood chat, validate ban words
         if (message.startsWith('/help')) {
             for (const { command } of this.commands.values()) {
@@ -39,7 +40,12 @@ export default class CommandManager {
 
         const { command: Command, createHandler } = this.commands.get(commandName);
 
-        const command = new Command({ args });
+        let finalArgs = args;
+        if (extraArgs && commandName === '/phase_select' && extraArgs.slot !== undefined) {
+            finalArgs = [extraArgs.slot];
+        }
+
+        const command = new Command({ args: finalArgs });
         const commandHandler = createHandler(this.container);
         await commandHandler.execute(player, command);
     }

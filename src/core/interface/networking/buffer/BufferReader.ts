@@ -40,4 +40,8 @@ export default class BufferReader {
         this.lastPos += size;
         return result;
     }
+
+    public getBuffer(): Buffer {
+        return this.buffer;
+    }
 }
