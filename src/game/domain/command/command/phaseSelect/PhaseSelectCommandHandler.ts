@@ -3,12 +3,13 @@ import PhaseSelectCommand from './PhaseSelectCommand';
 import Logger from '@/core/infra/logger/Logger';
 import LeaveGameService from '@/game/domain/service/LeaveGameService';
 import LoadCharactersService from '@/game/app/service/LoadCharactersService';
-import CharactersInfoPacket from '@/core/interface/networking/packets/packet/out/CharactersInfoPacket';
+import { CharactersInfoSelectPacket } from '@/core/interface/networking/packets/packet/out/CharactersInfoPacket';
 import { ConnectionStateEnum } from '@/core/enum/ConnectionStateEnum';
 import { ChatMessageTypeEnum } from '@/core/enum/ChatMessageTypeEnum';
 import ReturnToSelectPacket from '@/core/interface/networking/packets/packet/in/returnToSelect/ReturnToSelectPacket';
 import Ip from '@/core/util/Ip';
 import { GameConfig } from '@/game/infra/config/GameConfig';
+import EmpirePacket from '@/core/interface/networking/packets/packet/bidirectional/empire/EmpirePacket';
 
 export default class PhaseSelectCommandHandler extends CommandHandler<PhaseSelectCommand> {
     private readonly logger: Logger;
@@ -64,29 +65,61 @@ export default class PhaseSelectCommandHandler extends CommandHandler<PhaseSelec
             }
             const players = charactersResult.getData();
             console.log('[PhaseSelectCommandHandler] players:', players);
-            const characterInfoPacket = new CharactersInfoPacket();
-            players.forEach((player) => {
-                characterInfoPacket.addCharacter(player.slot, {
-                    id: player.id,
-                    name: player.name,
-                    playerClass: player.playerClass,
-                    level: player.level,
-                    playTime: player.playTime,
-                    st: player.st,
-                    ht: player.ht,
-                    dx: player.dx,
-                    iq: player.iq,
-                    bodyPart: player.bodyPart,
-                    nameChange: 0,
-                    hairPart: player.hairPart,
-                    positionX: player.positionX,
-                    positionY: player.positionY,
-                    ip: Ip.toInt(this.config.REAL_SERVER_ADDRESS || this.config.SERVER_ADDRESS),
-                    port: Number(this.config.SERVER_PORT),
-                    skillGroup: player.skillGroup,
-                });
-            });
+            if (players.length > 0) {
+                const empirePacket = new EmpirePacket({ empireId: players[0].empire });
+                connection.send(empirePacket);
+                console.log('[PhaseSelectCommandHandler] EmpirePacket sent:', players[0].empire);
+            }
+            const port = process.env.GAME_SERVER_PORT ? Number(process.env.GAME_SERVER_PORT) : Number(this.config.SERVER_PORT);
+            const ip = Ip.toInt(process.env.GAME_SERVER_ADDRESS || '127.0.0.1');
+            const characterInfoPacket = new CharactersInfoSelectPacket();
+            for (let slot = 0; slot < 4; slot++) {
+                const playerData = players.find(p => p.slot === slot);
+                if (playerData) {
+                    characterInfoPacket.addCharacter(slot, {
+                        id: playerData.id,
+                        name: playerData.name,
+                        playerClass: playerData.playerClass,
+                        level: playerData.level,
+                        playTime: playerData.playTime,
+                        st: playerData.st,
+                        ht: playerData.ht,
+                        dx: playerData.dx,
+                        iq: playerData.iq,
+                        bodyPart: playerData.bodyPart,
+                        nameChange: 0,
+                        hairPart: playerData.hairPart,
+                        positionX: playerData.positionX,
+                        positionY: playerData.positionY,
+                        ip: ip,
+                        port: port,
+                        skillGroup: playerData.skillGroup,
+                    });
+                } else {
+                    characterInfoPacket.addCharacter(slot, {
+                        id: 0,
+                        name: '',
+                        playerClass: 0,
+                        level: 0,
+                        playTime: 0,
+                        st: 0,
+                        ht: 0,
+                        dx: 0,
+                        iq: 0,
+                        bodyPart: 0,
+                        nameChange: 0,
+                        hairPart: 0,
+                        positionX: 0,
+                        positionY: 0,
+                        ip: ip,
+                        port: port,
+                        skillGroup: 0,
+                    });
+                }
+            }
             console.log('[PhaseSelectCommandHandler] CharactersInfoPacket characters:', characterInfoPacket['characters']);
+            const rawBuffer = characterInfoPacket.pack();
+            console.log('[PhaseSelectCommandHandler] CharactersInfoPacket raw buffer:', rawBuffer);
             player.chat({
                 message: 'Returning to character select screen...',
                 messageType: ChatMessageTypeEnum.INFO,

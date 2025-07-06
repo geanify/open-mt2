@@ -1,7 +1,8 @@
 import PacketHeaderEnum from '@/core/enum/PacketHeaderEnum';
 import PacketOut from '@/core/interface/networking/packets/packet/out/PacketOut';
 
-type CharacterInfoParams = {
+
+interface BaseCharacterInfoParams {
     id: number;
     name: string;
     playerClass: number;
@@ -13,6 +14,9 @@ type CharacterInfoParams = {
     iq: number;
     bodyPart: number;
     nameChange: number;
+};
+
+interface CharacterInfoParams extends BaseCharacterInfoParams {
     hairPart: number;
     positionX: number;
     positionY: number;
@@ -70,14 +74,15 @@ const defaultCharacterInfo = {
     positionX: 0,
     positionY: 0,
     ip: 0,
-    port: '',
+    port: 0,
     skillGroup: 0,
 };
 
 export default class CharactersInfoPacket extends PacketOut {
-    private characters: Array<CharacterInfoParams> = new Array(4).fill(defaultCharacterInfo);
+    private characters: Array<CharacterInfoParams> = Array.from({ length: 4 }, () => ({ ...defaultCharacterInfo }));
     private guildIds: Array<number> = new Array(4).fill(0);
     private guildNames: Array<string> = new Array(4).fill('');
+    private defaultPort: number = 0;
 
     constructor() {
         super({
@@ -85,6 +90,10 @@ export default class CharactersInfoPacket extends PacketOut {
             name: 'CharactersInfoPacket',
             size: 329,
         });
+    }
+
+    setDefaultPort(port: number) {
+        this.defaultPort = port;
     }
 
     addCharacter(
@@ -127,7 +136,7 @@ export default class CharactersInfoPacket extends PacketOut {
             positionX,
             positionY,
             ip,
-            port,
+            port: typeof port === 'number' ? port : this.defaultPort,
             skillGroup,
         };
         this.guildIds[pos] = guildId;
@@ -158,8 +167,101 @@ export default class CharactersInfoPacket extends PacketOut {
         this.guildIds.forEach((id) => this.bufferWriter.writeUint32LE(id));
         this.guildNames.forEach((name) => this.bufferWriter.writeString(name, 13));
         this.bufferWriter.writeUint32LE(0);
-        this.bufferWriter.writeUint32LE(0);
 
         return this.bufferWriter.getBuffer();
+    }
+}
+
+export class CharactersInfoSelectPacket extends PacketOut {
+    private characters: Array<CharacterInfoParams> = Array.from({ length: 4 }, () => ({ ...defaultCharacterInfo }));
+    private guildIds: Array<number> = new Array(4).fill(0);
+    private guildNames: Array<string> = new Array(4).fill('');
+
+    constructor() {
+        super({
+            header: PacketHeaderEnum.CHARACTERS_LIST,
+            name: 'CharactersInfoSelectPacket',
+            size: 329,
+        });
+    }
+
+    addCharacter(
+        pos: number,
+        {
+            id,
+            name,
+            playerClass,
+            level,
+            playTime,
+            st,
+            ht,
+            dx,
+            iq,
+            bodyPart,
+            nameChange,
+            hairPart,
+            positionX,
+            positionY,
+            ip,
+            port,
+            skillGroup,
+        }: CharacterInfoParams,
+        guildId: number = 0,
+        guildName: string = '',
+    ) {
+        const safeName = typeof name === 'string' ? name.substring(0, 12) : '';
+        const safeGuildName = typeof guildName === 'string' ? guildName.substring(0, 12) : '';
+        this.characters[pos] = {
+            id,
+            name: safeName,
+            playerClass,
+            level,
+            playTime,
+            st,
+            ht,
+            dx,
+            iq,
+            bodyPart,
+            nameChange,
+            hairPart,
+            positionX,
+            positionY,
+            ip,
+            port: typeof port === 'number' ? port : 0,
+            skillGroup,
+        };
+        this.guildIds[pos] = guildId;
+        this.guildNames[pos] = safeGuildName;
+    }
+
+    pack() {
+        this.characters.forEach((char) => {
+            const safeName = typeof char.name === 'string' ? char.name.substring(0, 12) : '';
+            this.bufferWriter.writeUint32LE(char.id);
+            this.bufferWriter.writeString(safeName, 12);
+            this.bufferWriter.writeUint8(char.playerClass);
+            this.bufferWriter.writeUint8(char.level);
+            this.bufferWriter.writeUint32LE(char.playTime);
+            this.bufferWriter.writeUint8(char.st);
+            this.bufferWriter.writeUint8(char.ht);
+            this.bufferWriter.writeUint8(char.dx);
+            this.bufferWriter.writeUint8(char.iq);
+            this.bufferWriter.writeUint16LE(char.bodyPart);
+            // this.bufferWriter.writeUint8(char.nameChange);
+            this.bufferWriter.writeUint16LE(char.hairPart);
+            // this.bufferWriter.writeUint32LE(char.positionX);
+            // this.bufferWriter.writeUint32LE(char.positionY);
+            // this.bufferWriter.writeUint32LE(char.ip);
+            // this.bufferWriter.writeUint16LE(char.port);
+            // this.bufferWriter.writeUint8(char.skillGroup);
+        });
+        // this.guildIds.forEach((id) => this.bufferWriter.writeUint32LE(id));
+
+
+        const buf = this.bufferWriter.getBuffer();
+        if (buf.length !== 329) {
+            console.error('[CharactersInfoSelectPacket] Buffer size mismatch! Expected 329, got', buf.length);
+        }
+        return buf;
     }
 }
