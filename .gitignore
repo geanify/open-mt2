@@ -7,3 +7,6 @@ motionData
 coverage
 .nyc_output
 dist
+
+Client/
+run.sh

@@ -7,6 +7,7 @@ import { makePackets } from '@/core/interface/networking/packets/Packets';
 import AccountRepository from '@/auth/infra/database/AccountRepository';
 import BcryptEncryptionProvider from '@/core/infra/encryption/BcryptEncryptionProvider';
 import RedisCacheProvider from '@/core/infra/cache/RedisCacheProvider';
+import InMemoryCacheProvider from '@/core/infra/cache/InMemoryCacheProvider';
 import { makeAuthConfig } from './infra/config/AuthConfig';
 
 const container = createContainer();
@@ -19,7 +20,7 @@ container.register({
     packets: asFunction(makePackets).singleton(),
     databaseManager: asClass(DatabaseManager).singleton(),
     accountRepository: asClass(AccountRepository).scoped(),
-    cacheProvider: asClass(RedisCacheProvider).singleton(),
+    cacheProvider: asClass(InMemoryCacheProvider).singleton(),
     encryptionProvider: asClass(BcryptEncryptionProvider).singleton(),
     loginService: asClass(LoginService).scoped(),
 });

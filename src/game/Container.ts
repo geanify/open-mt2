@@ -33,7 +33,7 @@ import PlayerRepository from './infra/database/PlayerRepository';
 import GameServer from './interface/server/GameServer';
 import { makeGameConfig } from './infra/config/GameConfig';
 import WinstonLoggerAdapter from '@/core/infra/logger/WinstonLoggerAdapter';
-import RedisCacheProvider from '@/core/infra/cache/RedisCacheProvider';
+import InMemoryCacheProvider from '@/core/infra/cache/InMemoryCacheProvider';
 import { PrivilegeManager } from '@/core/domain/manager/PrivilegeManager';
 
 const container = createContainer();
@@ -46,7 +46,7 @@ container.register({
     packets: asFunction(makePackets).singleton(),
     databaseManager: asClass(DatabaseManager).singleton(),
     world: asClass(World).singleton(),
-    cacheProvider: asClass(RedisCacheProvider).singleton(),
+    cacheProvider: asClass(InMemoryCacheProvider).singleton(),
     playerRepository: asClass(PlayerRepository).singleton(),
     itemRepository: asClass(ItemRepository).singleton(),
     authenticateService: asClass(AuthenticateService).scoped(),
