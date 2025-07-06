@@ -61,7 +61,7 @@ container.register({
     experienceManager: asClass(ExperienceManager).singleton(),
     saveCharacterService: asClass(SaveCharacterService).scoped(),
     leaveGameService: asClass(LeaveGameService).scoped(),
-    commands: asFunction(Commands).singleton(),
+    commands: asFunction((cr) => Commands({ config: cr.config })).singleton(),
     commandManager: asClass(CommandManager).singleton(),
     logoutService: asClass(LogoutService).scoped(),
     mobManager: asClass(MobManager).singleton(),

@@ -7,17 +7,21 @@ import CharactersInfoPacket from '@/core/interface/networking/packets/packet/out
 import { ConnectionStateEnum } from '@/core/enum/ConnectionStateEnum';
 import { ChatMessageTypeEnum } from '@/core/enum/ChatMessageTypeEnum';
 import ReturnToSelectPacket from '@/core/interface/networking/packets/packet/in/returnToSelect/ReturnToSelectPacket';
+import Ip from '@/core/util/Ip';
+import { GameConfig } from '@/game/infra/config/GameConfig';
 
 export default class PhaseSelectCommandHandler extends CommandHandler<PhaseSelectCommand> {
     private readonly logger: Logger;
     private readonly leaveGameService: LeaveGameService;
     private readonly loadCharactersService: LoadCharactersService;
+    private readonly config: GameConfig;
 
-    constructor({ logger, leaveGameService, loadCharactersService }) {
+    constructor({ logger, leaveGameService, loadCharactersService, config }) {
         super();
         this.logger = logger;
         this.leaveGameService = leaveGameService;
         this.loadCharactersService = loadCharactersService;
+        this.config = config;
     }
 
     async execute(player, command: PhaseSelectCommand) {
@@ -77,8 +81,8 @@ export default class PhaseSelectCommandHandler extends CommandHandler<PhaseSelec
                     hairPart: player.hairPart,
                     positionX: player.positionX,
                     positionY: player.positionY,
-                    ip: 0,
-                    port: 0,
+                    ip: Ip.toInt(this.config.REAL_SERVER_ADDRESS || this.config.SERVER_ADDRESS),
+                    port: Number(this.config.SERVER_PORT),
                     skillGroup: player.skillGroup,
                 });
             });

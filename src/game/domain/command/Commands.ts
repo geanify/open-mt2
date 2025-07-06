@@ -37,7 +37,11 @@ export type CommandMapValue<T extends Command> = {
     createHandler: (params: any) => CommandHandler<T>;
 };
 
-export default () =>
+interface CommandsOptions {
+    config?: any;
+}
+
+const Commands = ({ config }: CommandsOptions = {}) =>
     new Map<string, CommandMapValue<any>>([
         [
             StatCommand.getName(),
@@ -124,7 +128,10 @@ export default () =>
                     logger: params.logger,
                     leaveGameService: params.leaveGameService,
                     loadCharactersService: params.loadCharactersService,
+                    config: config || params.config,
                 }),
             },
         ],
     ]);
+
+export default Commands;
