@@ -6,7 +6,6 @@ docker-compose -f docker-compose.yml up -d
 
 sleep 20
 
-npm run migrate
-
+bun run migrate
 
 ./run.sh
