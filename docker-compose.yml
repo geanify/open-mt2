@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   auth-server:
-      image: node:22
+      image: oven/bun:1.1.13-debian
       container_name: auth-server
       env_file:
       - ./.env
@@ -25,9 +25,9 @@ services:
         - cache
         - database
       working_dir: /usr/app
-      command: bash -c "npm install && npm run migrate && npm run dev:auth"
+      command: sh -c "bun install && bun run migrate && bun run dev:auth"
   game-server:
-      image: node:22
+      image: oven/bun:1.1.13-debian
       container_name: game-server
       env_file:
       - ./.env
@@ -52,7 +52,7 @@ services:
         - cache
         - database
       working_dir: /usr/app
-      command: bash -c "npm install && npm run dev:game"
+      command: sh -c "bun install && bun run dev:game"
       # deploy:
       #   resources:
       #     limits:
