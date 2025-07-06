@@ -147,8 +147,8 @@ export default class PlayerRepository implements IPlayerRepository {
             `);
             stmt.run(
                 player.accountId,
-                player.createdAt,
-                player.updatedAt,
+                player.createdAt instanceof Date ? player.createdAt.toISOString() : player.createdAt,
+                player.updatedAt instanceof Date ? player.updatedAt.toISOString() : player.updatedAt,
                 player.empire,
                 player.playerClass,
                 player.skillGroup,
