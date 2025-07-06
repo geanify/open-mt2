@@ -27,4 +27,4 @@ export default class InMemoryCacheProvider implements CacheProvider {
     async exists(key: string) {
         return this.store.has(key);
     }
-} 
+}
